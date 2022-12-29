@@ -26,9 +26,10 @@ const command = process.argv[2];
 yargs(hideBin(process.argv))
   // .usage('add', '-a')
   .command('add', 'enter a name')
-  .option('firstname', { alias: 'firstname', describe: 'enter firstname of user', type: 'string', demandOption: true })
-  .option('lastname', { alias: 'lastname', describe: 'enter lastname of user', type: 'string', demandOption: true })
-
+  .options('firstname', { alias: 'firstname', describe: 'enter firstname of user', type: 'string', demandOption: true })
+  .options('lastname', { alias: 'lastname', describe: 'enter lastname of user', type: 'string', demandOption: true })
+  .options('dob', { alias: 'dob', describe: 'enter dob of user', type: 'string', demandOption: true })
+  .options('nickname', { alias: 'nickname', describe: 'enter nickname of user', type: 'string' })
   // .option('add', {
   //   alias: 'firstname',
   //   describe: 'Add the user firstName, lastName, dob and nickName',
