@@ -2,7 +2,7 @@
 console.log(process.argv)
 // const rl = require("readline");
 import rl from "readline";
-// const rl = ReadLine();
+// const rl = ReadLine(); 
 
 import { LowSync } from 'lowdb'
 import { JSONFileSync } from 'lowdb/node'
