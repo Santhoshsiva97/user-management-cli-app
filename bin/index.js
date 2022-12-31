@@ -38,12 +38,14 @@ yargs(hideBin(process.argv))
   //   required: true,
   // })
   .command('edit', 'edit the user')
-  .options('id', { alias: 'id', describe: 'Enter the user id', type: 'number' })
+  .options('id', { alias: 'id', describe: 'Enter the user id to edit', type: 'number' })
   .command('delete', 'delete the user')
-  .options('id', { alias: 'id', describe: 'Enter the user id', type: 'number' })
+  .options('id', { alias: 'id', describe: 'Enter the user id to delete', type: 'number' })
   .command('view', 'view the users')
-  .options('id', { alias: 'id', describe: 'enter the user id', type: 'number' })
-  
+  .options('id', { alias: 'id', describe: 'enter the user id to view', type: 'number' })
+  .command('search', 'search the users')
+  // .options('searchText', { alias: 'id', describe: 'enter the search text', type: 'number' })
+
   // .describe('n', 'Enter your name')
   // .alias("n", "name" || string)
   // .demandOption(1)
@@ -161,8 +163,19 @@ const addUser = () => {
 
 const editUser = () => {
   console.log('edit:::user', args)
-  console.log('chain::::', JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id }).assign({ firstName: args.firstname })))) //.get('db.data.persons').find({ id: args.id }))
-  db.chain.get('persons').find({ id: args.id }).assign({ firstName: args.firstname });
+  const user = JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id })));
+  // console.log('chain::::', JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id }).assign(
+  //   { firstName: args.firstname || user.firstName && user.firstName }, 
+  //   { lastName: args.lastname || user.lastName && user.lastName },
+  //   { dob: args.dob || user.dob && user.dob },
+  //   { nickName: args.nickname || user.nickName && user.nickName },
+  // )))) //.get('db.data.persons').find({ id: args.id }))
+  JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id }).assign(
+    { firstName: args.firstname || user.firstName && user.firstName },
+    { lastName: args.lastname || user.lastName && user.lastName },
+    { dob: args.dob || user.dob && user.dob },
+    { nickName: args.nickname || user.nickName && user.nickName },
+  )));
   db.write();
   //const personsList = 
   // db.data.persons.find({ id: args.id }).assign({ firstName: args.firstname }).write();
@@ -203,6 +216,18 @@ const getUsersList = () => {
 
 }
 
+const searchUser = () => {
+  console.log('search users::::', args)
+  console.log('parse::::', args._[1])
+  const usersList = JSON.parse(JSON.stringify(db.chain.get('persons')))//db.chain.get('persons').find({ id: args.id });
+  const user = _.find(usersList, (person) => {
+    if(person.firstName == args._[1] || person.lastName == args._[1]) return person;
+  })
+  console.log('user::::', user)
+  user ? console.log(`\nSearch User details:-\nFirst Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName}\n`)
+    : console.log(`Sorry:(\nNo user with the name "${args._[1]}"`)
+}
+
 //...
 switch(command) {
     case 'view':
@@ -216,6 +241,9 @@ switch(command) {
       break;
     case 'delete':
       deleteUser();
+      break;
+    case 'search':
+      searchUser();
       break;
     default:
       errorLog('invalid command passed');

@@ -1,0 +1,12 @@
+{
+  "addresses": [
+    {
+      "id": 1,
+      "personId": 1,
+      "line1": "123 Evergreen Terrace",
+      "line2": "Strand",
+      "country": "Denmark",
+      "postcode": ""
+    }
+  ]
+}

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "bin": {
-    "person": "./bin/index.js"
+    "person": "./bin/index.js",
+    "address": "./bin/address.js"
   },
   "type": "module",
   "main": "./bin/index.js",
