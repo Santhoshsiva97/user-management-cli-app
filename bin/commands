@@ -1,8 +1,8 @@
 View a list of all People
     person view
 Add a Person: 
-    person add -firstname “Bob” -lastname “Smith” -dob 10/03/1960
-    person add -firstname “Susan” -lastname “Delgato” -dob 01/05/1971 -nickname “Susie”
+    person add --firstname “Bob” --lastname “Smith” --dob 10/03/1960
+    person add --firstname “Susan” -lastname “Delgato” -dob 01/05/1971 -nickname “Susie”
 Edit a Person:
     person edit -id 3 -lastname “Patel”
 Delete a Person:

@@ -1,27 +1,18 @@
 #!/usr/bin/env node
-console.log(process.argv)
-// const rl = require("readline");
-import rl from "readline";
-// const rl = ReadLine(); 
 
 import { LowSync } from 'lowdb'
 import { JSONFileSync } from 'lowdb/node'
-
+import { v4 as uuidv4 } from 'uuid';
+import boxen from 'boxen';
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 import _ from 'lodash';
-// const chalk = require("chalk");
 import { Chalk } from "chalk";
+
+
 const chalk = new Chalk();
 const args = yargs(process.argv.slice(2)).argv;
-
 const command = process.argv[2];
-
-// yargs(hideBin(process.argv))
-//  .usage("Usage: -firstname <name>")
-//  .option("f", { alias: "name", describe: "Your name", type: "string", demandOption: true })
-// //  .option("", { alias: "lastname", describe: "Your name", type: "string", demandOption: true })
-//  .argv;
 
 
 yargs(hideBin(process.argv))
@@ -31,12 +22,6 @@ yargs(hideBin(process.argv))
   .options('lastname', { alias: 'lastname', describe: 'enter lastname of user', type: 'string' })
   .options('dob', { alias: 'dob', describe: 'enter dob of user', type: 'string' })
   .options('nickname', { alias: 'nickname', describe: 'enter nickname of user', type: 'string' })
-  // .option('add', {
-  //   alias: 'firstname',
-  //   describe: 'Add the user firstName, lastName, dob and nickName',
-  //   type: 'string',
-  //   required: true,
-  // })
   .command('edit', 'edit the user')
   .options('id', { alias: 'id', describe: 'Enter the user id to edit', type: 'number' })
   .command('delete', 'delete the user')
@@ -44,228 +29,207 @@ yargs(hideBin(process.argv))
   .command('view', 'view the users')
   .options('id', { alias: 'id', describe: 'enter the user id to view', type: 'number' })
   .command('search', 'search the users')
-  // .options('searchText', { alias: 'id', describe: 'enter the search text', type: 'number' })
-
-  // .describe('n', 'Enter your name')
-  // .alias("n", "name" || string)
-  // .demandOption(1)
-  // .describe("age", "Enter the age")
-  // .alias("age", "age")
   .demandCommand(1)
   .argv;
 
-  // "n", { alias: "name", describe: "Your name", type: ["string", "number"], demandOption: true }
 
-// import yargs from "yargs";
-
-// const options = yargs
-//  .usage("Usage: -n <name>")
-//  .option("n", { alias: "name", describe: "Your name", type: ["string", "number"], demandOption: true })
-//  .argv;
-
-// const greeting = `Hello, ${options.name}!`;
-
-// console.log(greeting);
-
+// Chaining the lowdb with Lodash in Synchronous way
 class LowSyncWithLodash extends LowSync {
-  // constructor(props) {
-  //   super(props)
-  //   return({ chain: _.chain(this).get("data") })
-    
-  // }
   chain = _.chain(this).get("data") 
-  // chain: lodash.ExpChain<this['data']> = lodash.chain(this).get('data')
 }
-
-
-
 const adapter = new JSONFileSync('./bin/db.json')
-console.log('adapter::::', adapter)
 const db = new LowSyncWithLodash(adapter)
-// const database = JSON.parse(JSON.stringify(db))
-console.log('db:::', db)
+db.read(); // To read the DB file
+db.data ||= { persons: [] }; // To set initial value
 
-db.read(); 
-db.data ||= { persons: [] };
-// db.data ||= { persons: [] };
-
-// if (!database.data) { 
-//   (db.data ||= { persons: [] } )
-// } else {
-//   db.read();
-// }
-
-
-// db.data.persons.length > 0 ? db.read() : ''
-
-console.log('data:::', db.data)
-
-
-// used to log errors to the console in red color
-function errorLog(error) {
-  const eLog = chalk.red(error)
-  console.log(eLog)
+// log errors to the console in red color
+function errorLog(title, error) {
+  const eLog = chalk.red(`${title} ${error}`)
+  console.error(eLog)
+  console.log(chalk.red('Error details ==>'), error)
 }
 
-// we make sure the length of the arguments is exactly three
-// if (args.length > 3) {
-//   errorLog(`only one argument can be accepted`)
-//   usage()
-// }
+// log warning to the console in yellowBright color
+function warnLog(title, warn) {
+  const wLog = chalk.yellowBright(`${title} ${warn}`)
+  console.log(wLog)
+}
 
-// ...
-// if (commands.indexOf(args[2]) == -1) {
-//   errorLog('invalid command passed please check the --help')
-//   usage()
-// }
-// type Data = {
-//   persons: [],
-// }
+// log success to the console in green color
+function successLog(msg) {
+  const sLog = chalk.green(`${msg}`)
+  console.log(sLog)
+}
 
-// type personData = {
-//   firstName: String,
-//   lastName: String,
-//   dob: String,
-//   nickName: String,
-// }
+// All user list from db.json
+const usersList = JSON.parse(JSON.stringify(db.chain.get('persons')))
 
+// Add method - Add the user details to ./db.json file
 const addUser = () => {
+  try {
+    // Validation added: Firstname, Lastname & dob is required. Firstname & Lastname should not contian numbers
+    if(!args.firstname || !args.lastname || !args.dob) throw new Error('Firstname, Lastname & dob is required fields');
+    const validateConstriants = (args.firstname.trim() && args.lastname.trim() && args.dob.trim() && !_.isNumber(args.firstname) && !_.isNumber(args.lastname)); 
+    // Check if duplicate exists
+    if (validateConstriants) {
+      const user = usersList.filter(item => item.firstName.toLowerCase() === args.firstname.toLowerCase() && item.lastName.toLowerCase() === args.lastname.toLowerCase())
+      const isDuplicate = (user.length > 0) ? true : false;
 
-  console.log('adduser::::', args);
-  // const q = chalk.blue(`Type in ${args} \n`)
-  // console.log(q)
-  const index = db.data && db.data.persons ? db.data.persons.length : 0;
-  console.log('length:::', index)
-  // const params = new personData()
-  db.data.persons
-  .push({
-    id: index + 1,
-    firstName: args.firstname,
-    lastName: args.lastname,
-    dob: args.dob,
-    nickName: args.nickname || '',
-  })
-
-  db.write();
-  // db.read();
-  // prompt(q).then(todo => {
-  //   console.log(todo)
-  //   // add todo
-  //     db.data.todos
-  //     .push({
-  //         title: todo,
-  //         complete: false
-  //     })
-
-  //     db.write();
-  // })
+      // Validate the field dataTypes constriants and check if duplicate exists
+      if(!isDuplicate) {
+        db.data.persons.push({ 
+          id: uuidv4(), // Auto generate unique UUID. Example: "eda8f201-23f1-4243-87e0-e2de733e5e48"
+          firstName: args.firstname,
+          lastName: args.lastname,
+          dob: args.dob,
+          nickName: !(_.isNumber(args.nickname)) ? args.nickname : '', // Validating Nickname constriant
+        })
+        // Warning info
+        args.nickname && (_.isNumber(args.nickname)) ? warnLog('Warning:', 'Nick Name cannot contain numbers') : '';
+      } else {
+        throw new Error("Duplication error - Please Check the constriants");
+      }
+      db.write();
+      successLog('User added successfully!');
+    } else {
+      throw new Error('Validation error - check field constriants')
+    }
+  } catch(error) {
+    errorLog('Error: Adding user ==>', error);
+  }
 }
 
+// Edit method - Will edit all the fields in the person structure
 const editUser = () => {
-  console.log('edit:::user', args)
-  const user = JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id })));
-  // console.log('chain::::', JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id }).assign(
-  //   { firstName: args.firstname || user.firstName && user.firstName }, 
-  //   { lastName: args.lastname || user.lastName && user.lastName },
-  //   { dob: args.dob || user.dob && user.dob },
-  //   { nickName: args.nickname || user.nickName && user.nickName },
-  // )))) //.get('db.data.persons').find({ id: args.id }))
-  JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id }).assign(
-    { firstName: args.firstname || user.firstName && user.firstName },
-    { lastName: args.lastname || user.lastName && user.lastName },
-    { dob: args.dob || user.dob && user.dob },
-    { nickName: args.nickname || user.nickName && user.nickName },
-  )));
-  db.write();
-  //const personsList = 
-  // db.data.persons.find({ id: args.id }).assign({ firstName: args.firstname }).write();
-  // const personItem = _.chain(db.data.persons).find({ id: args.id }).assign({ firstName: args.firstname })
-  // console.log('person item:::', personItem)
-  // db.write();
-  // const person = personList.filter(item => item.id == args.id);
-  // db.data.per
+  try {
+    if(!args.id) throw new Error('User id is not entered');
+    // Finding the user to edit
+    const user = usersList.length > 0 ? usersList.filter(item => item.id == args.id) : [];
+    if(user.length == 0) throw new Error('User is not available');
+    const firstName = args.firstname && args.firstname.trim() || user.firstName;
+    const lastName = args.lastname && args.lastname.trim() || user.lastName;
+    const dob = args.dob && args.dob.trim() || user.dob;
+    // Check if user exists
+    const isUserAvailable = usersList.filter(item => item.firstName.toLowerCase() === firstName.toLowerCase() && item.lastName.toLowerCase() === lastName.toLowerCase())
+    const isDuplicate = (isUserAvailable.length > 0) ? true : false;
+    // First name & last name is required & should not contain numbers
+    const validateTypes = (firstName && lastName && dob && !_.isNumber(firstName) && !_.isNumber(lastName))
+    
+    // Validate the duplicate user by firstname & lastname also validate dataType constraints
+    if(!isDuplicate && validateTypes) {
+      JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id }).assign(
+        { firstName: args.firstname || user.firstName && user.firstName },
+        { lastName: args.lastname || user.lastName && user.lastName },
+        { dob: args.dob || user.dob && user.dob },
+        { nickName: args.nickname || user.nickName && user.nickName },
+      )));
+      db.write();
+    successLog('User updated successfully!')
+    } else {
+      throw new Error('Validation Error - Please check params and the constraints')
+    }
+  } catch(error) {
+    errorLog('Error: Editing the user ==>', error);
+  }
 }
 
+// Delete method - Based on the Id entered the user will be deleted
 const deleteUser = () => {
-  console.log('delete:::user', args)
-  console.log('delete:::', JSON.parse(JSON.stringify(db.chain.get('persons').remove({ id: args.id }))))
-  db.chain.get('persons').remove({ id: args.id });
-  // _.remove(JSON.parse(JSON.stringify(db.chain.get('persons'))), (item) => {
-  //   console.log('n::::', item)
-  //    return item.id == args.id //JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id })))
-  // });
-  // delete db.chain.get('persons').find({ id: args.id })
-  db.write()
+  try {
+    const user = JSON.parse(JSON.stringify(db.chain.get('persons').remove({ id: args.id })));
+    db.write();
+    (user.length > 0) ? console.log(chalk.green('Successfully deleted the user!')) : errorLog('Error:', 'User does not exists');
+  } catch(error) {
+    errorLog('Error: Deleting the user ==>', error);
+  }
 }
 
+// Retrieve the user details and all the addresses related to the user
 const getUser = () => {
-  console.log('get users::::', args)
-  const user = JSON.parse(JSON.stringify(db.chain.get('persons').find({ id: args.id })))//db.chain.get('persons').find({ id: args.id });
-  console.log('user::::', user)
-  console.log(`\nUser details:-\nFirst Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName}\n`)
+  try {
+    if(usersList.length > 0) {
+      // Finding the user
+      const userArr = usersList.length > 0 ? usersList.filter(item => item.id == args.id) : [];
+      if(userArr.length == 0) throw new Error('User is not available');
+      const user = userArr[0];
+      // Configured the Address DB
+      const adapter = new JSONFileSync('./bin/db-addresses.json')
+      const addressDB = new LowSyncWithLodash(adapter)
+      addressDB.read(); 
+      addressDB.data ||= { addresses: [] };
+
+      const addresses = JSON.parse(JSON.stringify(addressDB.chain.get('addresses')))
+      const userAddress = addresses.filter(item => (item.personId == args.id))
+      
+      const userColored = chalk.blue(`First Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName || ''}`);
+      console.log(boxen(userColored, { title: 'User details',  textAlignment: "left", titleAlignment: "center", borderStyle: "round" }))
+  
+      userAddress.map((address, index) => {
+        const addressColored = chalk.blue(`Line 1: ${address.line1}\nLine 2: ${address.line2 || ''}\nCountry: ${address.country || ''}\nPost Code: ${address.postcode || ''}`);
+        console.log(boxen(addressColored, { title: `Address ${index+1}`,  textAlignment: "left", titleAlignment: "center", borderStyle: "round" }))
+      })
+    } else {
+      throw new Error('Users not yet added');
+    }
+  } catch(error) {
+    errorLog('Error: Viewing the user', error);
+  }
 }
 
+// To retreive all the user from the db.json
 const getUsersList = () => {
-  console.log('users::', args)
-  console.log('get users::::', args)
-  const usersList = JSON.parse(JSON.stringify(db.chain.get('persons')))//db.chain.get('persons').find({ id: args.id });
-  console.log('usersList::::', usersList)
-  usersList.map((user, index) => {
-    console.log(`\n${index+1}. User details:-\nFirst Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName}\n`)
-  })
-
-}
-
-const searchUser = () => {
-  console.log('search users::::', args)
-  console.log('parse::::', args._[1])
-  const usersList = JSON.parse(JSON.stringify(db.chain.get('persons')))//db.chain.get('persons').find({ id: args.id });
-  const user = _.find(usersList, (person) => {
-    if(person.firstName == args._[1] || person.lastName == args._[1]) return person;
-  })
-  console.log('user::::', user)
-  user ? console.log(`\nSearch User details:-\nFirst Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName}\n`)
-    : console.log(`Sorry:(\nNo user with the name "${args._[1]}"`)
-}
-
-//...
-switch(command) {
-    case 'view':
-      args.id ? getUser() : getUsersList();
-      break
-    case 'add':
-      addUser();
-      break
-    case 'edit':
-      editUser();
-      break;
-    case 'delete':
-      deleteUser();
-      break;
-    case 'search':
-      searchUser();
-      break;
-    default:
-      errorLog('invalid command passed');
-      // usage()
-  }
-  //...
-
-  //...
-
-//...
-
-//...
-function prompt(question) {
-    const r = rl.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-      terminal: false
-    });
-    return new Promise((resolve, error) => {
-      r.question(question, answer => {
-        r.close()
-        resolve(answer)
+  try {
+    if(usersList.length > 0) {
+      usersList.map((user, index) => {
+        const userColored =  chalk.blue(`First Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName || ''}`)
+        console.log(boxen(userColored, { title: `${index+1}. User details`,  textAlignment: "left", titleAlignment: "center", borderStyle: "round" }))
       });
-    })
+    } else {
+      throw new Error('No Users to view/Users not yet added')
+    }
+  } catch(error) {
+    errorLog('Error:', error);
   }
+
+}
+
+// Search the user based on the firstName and lastName irrespective of Case Sensitive
+const searchUser = () => {
+  try {
+    if(usersList.length > 0 && args._[1]) {
+      const user = _.find(usersList, (person) => {
+        if(person.firstName.toLowerCase() == args._[1].toLowerCase() || person.lastName.toLowerCase() == args._[1].toLowerCase()) return person;
+      })
+      if(!user) throw new Error('User does not exists')
+      const userColored = chalk.blue(`First Name: ${user.firstName}\nLast Name: ${user.lastName}\nD.O.B: ${user.dob}\nNick Name: ${user.nickName}`);
+      user ? console.log(boxen(userColored, { title: 'Search Results',  textAlignment: "left", titleAlignment: "center", borderStyle: "round" }))
+        : warnLog('Warning:', `No user with the name "${args._[1]}"`)
+    } else {
+      throw new Error(`${0} Users to search/Users not yet added`)
+    }
+  } catch(error) {
+    errorLog('Error: Searching the user ==>', error);
+  }
+}
+
+// Access the commands and switching between methods
+switch(command) {
+  case 'view':
+    args.id ? getUser() : getUsersList(); // View User and View all user method
+    break
+  case 'add':
+    addUser();
+    break
+  case 'edit':
+    editUser();
+    break;
+  case 'delete':
+    deleteUser();
+    break;
+  case 'search':
+    searchUser();
+    break;
+  default:
+    errorLog('Error:', 'Invalid command passed');
+    // usage()
+}
