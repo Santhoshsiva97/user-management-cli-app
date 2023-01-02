@@ -3,7 +3,7 @@
 ## Description
 User management CLI app in Node.js.
 * The Application help to manage the users list and addresses locally in JSON format.
-* Follow the below setup steps.
+* Clone the repo and follow the below setup steps.
 
 
 ## Project Setup
@@ -27,26 +27,6 @@ address
 
 ### Person command
 ```
-  usage:
-    person <command>
-
-    Commands:-
-
-    add            used to create a user
-    edit           used to retrieve and edit user
-    delete         used to delete/remove the user
-    view           used to display all the user
-    view --id      used to display the user and their addresses
-    search         used to search the user
-
-    Options:-
-    --firstname, --firstname Enter the firstname       [String][Required]
-    --lastname,  --lastname  Enter the lastname        [String][Required]
-    --dob,       --dob       Enter the Date of Birth   [Required]
-    --nickname,  --nickname  Enter the nickname        [Optional]
-    --help,      --help      Show help                 [Boolean]
-    --version,   --version   Show version              [Boolean]
-    ``
   usage:
     person <command>
 
@@ -94,6 +74,7 @@ address
 2. Node.js
 
 ## NPM's used:
+```
 * axios    // Country API management
 * boxen    // To warp user & address in box style
 * chalk    // Styling
@@ -102,3 +83,4 @@ address
 * pkg      // .exe conversion
 * uuid     // Auto Unique ID generation
 * yargs    // Arguments parsing
+```
