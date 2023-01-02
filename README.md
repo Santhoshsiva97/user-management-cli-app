@@ -1,9 +1,22 @@
 # User-Management-CLI-app
 
 ## Description
-User management CLI app in Node.js.
-* The Application help to manage the users list and addresses locally in JSON format.
+User management CLI app in Node.js - Application help to manage the users list and addresses locally in JSON format.
+
+## Requirements
 * Clone the repo and follow the below setup steps.
+* Make sure you have executable permission to the folder in your windows system/laptop.
+
+### Procedure & Steps:
+1. Select Start > All Programs > Windows PowerShell version > Windows PowerShell.
+2. Type Set-ExecutionPolicy RemoteSigned to set the policy to RemoteSigned.
+
+```
+1. Open CMD -> Run as Admin -> cd C:\Windows\System32
+2. powershell Get-ExecutionPolicy -List
+3. powershell Set-ExecutionPolicy RemoteSigned
+4. Open cloned folder -> icacls "C:\Santhosh\Projects\codis\user-management-cli-app" /grant Santhosh:F /T
+```
 
 
 ## Project Setup
