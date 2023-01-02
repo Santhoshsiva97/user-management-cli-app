@@ -15,9 +15,36 @@ const args = yargs(process.argv.slice(2)).argv;
 const command = process.argv[2];
 
 
+// Usage text for help
+const usage = function() {
+  const usageText = `
+  ${(chalk.underline.bgBlue.bold('User management CLI app - Mainatains the user details & addresses locally'))}
+  ${chalk.cyan(`
+  usage:
+    address <command>
 
+    Commands:-
+
+    add            used to create a address
+    edit           used to retrieve and edit address
+    delete         used to delete/remove the address
+
+    Options:-
+    --personId, --personId    Enter the PersonId             [UUID][Required]
+    --line1,    --line1       Enter the Line 1               [String][Required]
+    --line2,    --line2       Enter the Line 2               [String][Optional]
+    --country,  --country     Enter the country from Europe  [Optional]
+    --postcode, --postcode    Enter the postcode             [Number][Optional]
+    --help,     --help        Show help                      [Boolean]
+    --version,  --version     Show version                   [Boolean]
+    `)}
+  `
+  console.log(usageText)
+}
+
+// Yargs for parsing the commands and arguments
 yargs(hideBin(process.argv))
-  // .usage('add', '-a')
+  .usage('$0 <port>', 'Start the CLI App server...', () => usage())
   .command('add', 'enter the address')
   .options('personId', { alias: 'personId', describe: 'enter person Id', type: 'number' })
   .options('line1', { alias: 'line1', describe: 'enter the line1 of address', type: 'string' })
@@ -55,6 +82,12 @@ function warnLog(title, warn) {
   console.log(chalk.yellowBright('Warning details ==>'), warn)
 }
 
+// log success to the console in green color
+function successLog(msg) {
+  const sLog = chalk.green(`${msg}`)
+  console.log(sLog)
+}
+
 // Below method Handle the country list REST API
 const handleCountryList = async (country) => {
   let isCountryExistInEurope = [];
@@ -79,32 +112,35 @@ const usersAddressesList = JSON.parse(JSON.stringify(db.chain.get('addresses')))
 const addAddress = async () => {
   try {
     // PersonId and Line1 is required to proceed further
+    if(typeof args.line1 === typeof Boolean()) throw new Error('Line 1 is required');
     if(args.personId && args.line1) {
       // Check if any duplicate exists irrespective of case sensitive
-      const isDuplicate = usersAddressesList.filter(item => (item.personId === args.personId && item.line1 == args.line1 && item.line2.toLowerCase() == (args.line2 && args.line2.toLowerCase())
-        && item.country.toLowerCase() == (args.country && args.country.toLowerCase()) && item.postcode == args.postcode))
+      const isDuplicate = usersAddressesList.filter(item => ((item.personId === args.personId) && (item.line1 == args.line1) && (item.line2.toLowerCase().trim() == (args.line2 && !_.isNumber(args.line2) && args.line2.toLowerCase().trim()) || '')
+        && (item.country.toLowerCase().trim() == (args.country && args.country.toLowerCase().trim())) && (item.postcode == (args.postcode || ''))))
       // If No duplicate -> below condition will be true
       if(isDuplicate.length == 0) {
         // European Country list from from REST API
-        const isCountryExistInEurope = args.country ? await handleCountryList(args.country) : [];
+        const isCountryExistInEurope = args.country ? await handleCountryList(args.country.trim()) : [];
         // Regex to avoid special symbols/character in postcode
         var postcodeFormat = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         const postCode = (args.postcode && !postcodeFormat.test(args.postcode)) ? args.postcode : '';
-        console.log('isCountryExistInEurope:::::params', isCountryExistInEurope)
         db.data.addresses
         .push({
           id: uuidv4(), // Auto generate the UUID. Ex: "eda8f201-23f1-4243-87e0-e2de733e5e48"
           personId: args.personId,
           line1: args.line1,
-          line2: (args.line2 && !_.isNumber(args.line2)) ? args.line2 : '', // Line 2 cannot contain numbers
-          country: (isCountryExistInEurope.length > 0) ? args.country : '', // Must be valid country in Europe
+          line2: (args.line2 && !_.isNumber(args.line2)) ? args.line2.trim() : '', // Line 2 cannot contain numbers
+          country: (isCountryExistInEurope.length > 0) ? args.country.trim() : '', // Must be valid country in Europe
           postcode: postCode, // Postcode cannot contains special symbols/character
         });
         db.write();
-        // Warning methods
-        !(args.line2 && !_.isNumber(args.line2)) ? warnLog('Warning:', 'Line 2 cannot contain numbers') : '';
+        // Warning logs
+        (args.line2 && _.isNumber(args.line2)) ? warnLog('Warning:', 'Line 2 cannot contain numbers') : '';
         (isCountryExistInEurope.length == 0) ? warnLog('Warning:', 'Must be valid country in Europe') : '';
-        !postCode ? warnLog('Warning:', 'Postcode cannot contains special symbols/character') : ''
+        (args.postcode && !postCode) ? warnLog('Warning:', 'Postcode cannot contains special symbols/character') : ''
+        // Success log
+        successLog('Address added succesfully!');
+
       } else {
         throw new Error('Duplicate Error - Please Check the constraints');
       }
@@ -119,8 +155,10 @@ const addAddress = async () => {
 // Edit Method Async - Edit the address based the address id
 const editAddress = async () => {
   try {
+    
     // Getting the address
     const address = JSON.parse(JSON.stringify(db.chain.get('addresses').find({ id: args.id })));
+    if(typeof args.line1 === typeof Boolean() || typeof address.line1 === typeof Boolean()) throw new Error('Line 1 is required');
     // Handling the country list from API
     const isCountryExistInEurope = args.country ? await handleCountryList(args.country) : [];
     // Regex to avoid special symbols/character in postcode
@@ -141,6 +179,7 @@ const editAddress = async () => {
         { postcode: args.postcode || address.postcode && address.postcode },
       )));
       db.write();
+      successLog('Address edited succesfully!')
     } else {
       throw new Error('Duplicate Error - Check the field contraints')
     }
@@ -153,8 +192,9 @@ const editAddress = async () => {
 const deleteAddress = () => {
   try {
     // Remove the address
-    JSON.parse(JSON.stringify(db.chain.get('addresses').remove({ id: args.id })));
+    const address = JSON.parse(JSON.stringify(db.chain.get('addresses').remove({ id: args.id })));
     db.write();
+    (address.length > 0) ? successLog('Successfully deleted the address!') : errorLog('Error:', 'Address does not exists');
   } catch(error) {
     errorLog('Error: Deleting the address ==>', error);
   }

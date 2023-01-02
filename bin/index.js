@@ -14,21 +14,50 @@ const chalk = new Chalk();
 const args = yargs(process.argv.slice(2)).argv;
 const command = process.argv[2];
 
+// Usage text for help
+const usage = function() {
+  const usageText = `
+  ${(chalk.underline.bgBlue.bold('User management CLI app - Mainatains the user details & addresses locally'))}
+  ${chalk.cyan(`
+  usage:
+    person <command>
 
+    Commands:-
+
+    add            used to create a user
+    edit           used to retrieve and edit user
+    delete         used to delete/remove the user
+    view           used to display all the user
+    view --id      used to display the user and their addresses
+    search         used to search the user
+
+    Options:-
+    --firstname, --firstname Enter the firstname       [String][Required]
+    --lastname,  --lastname  Enter the lastname        [String][Required]
+    --dob,       --dob       Enter the Date of Birth   [Required]
+    --nickname,  --nickname  Enter the nickname        [Optional]
+    --help,      --help      Show help                 [Boolean]
+    --version,   --version   Show version              [Boolean]
+    `)}
+  `
+  console.log(usageText)
+}
+
+// Yargs for parsing the commands and arguments
 yargs(hideBin(process.argv))
-  // .usage('add', '-a')
-  .command('add', 'enter a name')
+  .usage('$0 <port>', 'Start the CLI App server...', () => usage())
+  .command('add', 'Add User')
   .options('firstname', { alias: 'firstname', describe: 'enter firstname of user', type: 'string' })
   .options('lastname', { alias: 'lastname', describe: 'enter lastname of user', type: 'string' })
   .options('dob', { alias: 'dob', describe: 'enter dob of user', type: 'string' })
   .options('nickname', { alias: 'nickname', describe: 'enter nickname of user', type: 'string' })
-  .command('edit', 'edit the user')
+  .command('edit', 'Edit User')
   .options('id', { alias: 'id', describe: 'Enter the user id to edit', type: 'number' })
-  .command('delete', 'delete the user')
+  .command('delete', 'Delete user')
   .options('id', { alias: 'id', describe: 'Enter the user id to delete', type: 'number' })
-  .command('view', 'view the users')
+  .command('view', 'View users')
   .options('id', { alias: 'id', describe: 'enter the user id to view', type: 'number' })
-  .command('search', 'search the users')
+  .command('search', 'Search Users')
   .demandCommand(1)
   .argv;
 
