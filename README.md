@@ -88,3 +88,6 @@ address
 * uuid     // Auto Unique ID generation
 * yargs    // Arguments parsing
 ```
+
+## CLI-app screenshot
+![image](https://user-images.githubusercontent.com/49669209/210259752-408d2674-635c-496f-9bfd-1c8c13bef53b.png)
