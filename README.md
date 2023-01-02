@@ -1,4 +1,4 @@
-# user-management-cli-app
+# User-Management-CLI-app
 
 ## Description
 User management CLI app in Node.js.
@@ -10,7 +10,11 @@ User management CLI app in Node.js.
 
 ### Install the dependencies
 ```
-npm install -y .
+npm install
+
+or
+
+npm install -g .
 ```
 
 ### Start command for User

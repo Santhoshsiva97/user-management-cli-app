@@ -133,11 +133,12 @@ const editUser = () => {
   try {
     if(!args.id) throw new Error('User id is not entered');
     // Finding the user to edit
-    const user = usersList.length > 0 ? usersList.filter(item => item.id == args.id) : [];
-    if(user.length == 0) throw new Error('User is not available');
-    const firstName = args.firstname && args.firstname.trim() || user.firstName;
-    const lastName = args.lastname && args.lastname.trim() || user.lastName;
-    const dob = args.dob && args.dob.trim() || user.dob;
+    let userArr = usersList.length > 0 ? usersList.filter(item => item.id == args.id) : [];
+    if(userArr.length == 0) throw new Error('User is not available');
+    const user = userArr[0];
+    const firstName = args.firstname ? args.firstname.trim() : user.firstName;
+    const lastName = args.lastname ? args.lastname.trim() : user.lastName;
+    const dob = args.dob ? args.dob.trim() : user.dob;
     // Check if user exists
     const isUserAvailable = usersList.filter(item => item.firstName.toLowerCase() === firstName.toLowerCase() && item.lastName.toLowerCase() === lastName.toLowerCase())
     const isDuplicate = (isUserAvailable.length > 0) ? true : false;
