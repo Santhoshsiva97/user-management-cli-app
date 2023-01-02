@@ -1,7 +1,7 @@
 {
   "name": "user-management-cli-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "To manage the users and addresses locally",
   "bin": {
     "person": "./bin/index.js",
     "address": "./bin/address.js"
@@ -19,6 +19,7 @@
     "chalk": "^5.2.0",
     "lodash": "^4.17.21",
     "lowdb": "^5.0.5",
+    "pkg": "^5.8.0",
     "uuid": "^9.0.0",
     "yargs": "^17.6.2"
   }
