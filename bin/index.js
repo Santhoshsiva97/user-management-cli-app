@@ -111,7 +111,7 @@ const addUser = () => {
           firstName: args.firstname,
           lastName: args.lastname,
           dob: args.dob,
-          nickName: !(_.isNumber(args.nickname)) ? args.nickname : '', // Validating Nickname constriant
+          nickName: args.nickname && !(_.isNumber(args.nickname)) ? args.nickname : '', // Validating Nickname constriant
         })
         // Warning info
         args.nickname && (_.isNumber(args.nickname)) ? warnLog('Warning:', 'Nick Name cannot contain numbers') : '';
